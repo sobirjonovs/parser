@@ -1,8 +1,8 @@
-import json
 import threading
 import time
-from urllib.request import urlopen
 from urllib import request
+from urllib.request import urlopen
+
 from bs4 import BeautifulSoup
 
 
@@ -79,7 +79,7 @@ def parse_store(name):
     print(f"start: {name} - {time.strftime('%-d %B %Y, %I:%M:%S%p')}")
     categories = parse_store_categories()
 
-    print(json.dumps(parse_store_products(categories), indent=2, ensure_ascii=False))
+    print(parse_store_products(categories))
 
     print(f"finish: {name} - {time.strftime('%-d %B %Y, %I:%M:%S%p')}")
 
@@ -94,11 +94,14 @@ def parse_store_products(categories):
                 product = soup.find(class_="product__item")
 
                 if not product:
+                    print('skipped')
                     continue
 
                 product = product.find("a")
 
                 product_url = product.get('href')
+
+                print(product_url)
                 code_product = urlopen(f"https://asaxiy.uz{request.quote(product_url)}").read()
                 soup_product = BeautifulSoup(code_product, "lxml")
                 img = soup_product.find(class_="img-fluid")
@@ -121,9 +124,9 @@ def parse_store_products(categories):
 
 
 thread1 = threading.Thread(target=parse_store, args=['asaxiy'])
-thread2 = threading.Thread(target=parse_store, args=['olcha'])
-thread3 = threading.Thread(target=parse_store, args=['elmakon'])
-thread4 = threading.Thread(target=parse_store, args=['texnomart'])
-thread5 = threading.Thread(target=parse_store, args=['prom'])
+# thread2 = threading.Thread(target=parse_store, args=['olcha'])
+# thread3 = threading.Thread(target=parse_store, args=['elmakon'])
+# thread4 = threading.Thread(target=parse_store, args=['texnomart'])
+# thread5 = threading.Thread(target=parse_store, args=['prom'])
 
-thread1.start(), thread2.start(), thread3.start(), thread4.start(), thread5.start()
+thread1.start() #, thread2.start(), thread3.start(), thread4.start(), thread5.start()
