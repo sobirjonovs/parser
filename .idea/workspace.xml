@@ -4,11 +4,16 @@
     <option name="autoReloadType" value="SELECTIVE" />
   </component>
   <component name="ChangeListManager">
-    <list default="true" id="8ab6ef7e-c9f2-4078-885c-3a0e86ae97d2" name="Changes" comment="" />
+    <list default="true" id="8ab6ef7e-c9f2-4078-885c-3a0e86ae97d2" name="Changes" comment="">
+      <change afterPath="$PROJECT_DIR$/.gitignore" afterDir="false" />
+    </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
     <option name="HIGHLIGHT_NON_ACTIVE_CHANGELIST" value="false" />
     <option name="LAST_RESOLUTION" value="IGNORE" />
+  </component>
+  <component name="Git.Settings">
+    <option name="RECENT_GIT_ROOT_PATH" value="$PROJECT_DIR$" />
   </component>
   <component name="MarkdownSettingsMigration">
     <option name="stateVersion" value="1" />
@@ -69,7 +74,7 @@
       <workItem from="1673185025065" duration="14541000" />
       <workItem from="1673244894530" duration="61000" />
       <workItem from="1673245861014" duration="74000" />
-      <workItem from="1673299739223" duration="13818000" />
+      <workItem from="1673299739223" duration="13963000" />
     </task>
     <servers />
   </component>
