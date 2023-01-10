@@ -91,10 +91,12 @@ def parse_store_products(categories):
                 code = urlopen(f"https://asaxiy.uz{request.quote(url)}").read()
                 soup = BeautifulSoup(code, "lxml")
 
-                product = soup.find(class_="product__item").find("a")
+                product = soup.find(class_="product__item")
 
                 if not product:
                     continue
+
+                product = product.find("a")
 
                 product_url = product.get('href')
                 code_product = urlopen(f"https://asaxiy.uz{request.quote(product_url)}").read()
