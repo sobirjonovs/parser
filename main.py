@@ -1,3 +1,4 @@
+import json
 import threading
 import time
 from urllib import request
@@ -77,9 +78,13 @@ def parse_store_categories() -> dict:
 
 def parse_store(name):
     print(f"start: {name} - {time.strftime('%-d %B %Y, %I:%M:%S%p')}")
-    categories = parse_store_categories()
+    categories = parse_store_products(parse_store_categories())
 
-    print(parse_store_products(categories))
+    with open('categories.json', 'w') as file:
+        file.write(json.dumps(categories))
+
+    with open('categories_indent.json', 'w') as file:
+        file.write(json.dumps(categories, indent=2, ensure_ascii=False))
 
     print(f"finish: {name} - {time.strftime('%-d %B %Y, %I:%M:%S%p')}")
 
@@ -90,18 +95,14 @@ def parse_store_products(categories):
             for url, type_product in sub_category['types'].items():
                 code = urlopen(f"https://asaxiy.uz{request.quote(url)}").read()
                 soup = BeautifulSoup(code, "lxml")
-
                 product = soup.find(class_="product__item")
 
                 if not product:
-                    print('skipped')
                     continue
 
                 product = product.find("a")
 
                 product_url = product.get('href')
-
-                print(product_url)
                 code_product = urlopen(f"https://asaxiy.uz{request.quote(product_url)}").read()
                 soup_product = BeautifulSoup(code_product, "lxml")
                 img = soup_product.find(class_="img-fluid")
@@ -111,7 +112,7 @@ def parse_store_products(categories):
                     product_url: {
                         'title': soup_product.find("h1").getText(),
                         'description': soup_product.find(class_="description__item").getText(),
-                        'characteristics': soup_product.find(class_='characteristics').prettify(encoding='utf-8'),
+                        'characteristics': soup_product.find(class_='characteristics').prettify(),
                         'images': [img.get("src")],
                         'price': price.getText() if price else 0,
                         'availability': soup_product.find(class_='text__content d-flex align-items-center mb-3').find(
