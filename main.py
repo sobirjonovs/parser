@@ -1,16 +1,13 @@
 import json
 import threading
 import time
-from urllib import request
-from urllib.request import urlopen
-
+from requests import get
 from bs4 import BeautifulSoup
 
 
 def parse_store_categories() -> dict:
-    code = urlopen("https://asaxiy.uz").read()
-    soup = BeautifulSoup(code, "lxml")
-
+    code = get("https://asaxiy.uz")
+    soup = BeautifulSoup(code.content, "lxml")
     menus = soup.find(class_="mega__menu-list").findAll(class_="tab-open")
 
     categories = {}
@@ -25,8 +22,8 @@ def parse_store_categories() -> dict:
 
         c_temp = categories[menu.get('href')]
 
-        sub_categories = urlopen(f"https://asaxiy.uz{request.quote(menu.get('href'))}").read()
-        sub_soup = BeautifulSoup(sub_categories, "lxml")
+        sub_categories = get(f"https://asaxiy.uz{menu.get('href')}")
+        sub_soup = BeautifulSoup(sub_categories.content, "lxml")
         sub_categories = sub_soup.findAll(class_='a__aside-data')
 
         for sub_category in sub_categories:
@@ -40,8 +37,8 @@ def parse_store_categories() -> dict:
             })
 
             sc_temp = c_temp['sub_categories'][sub_category.get('href')]
-            types = urlopen(f"https://asaxiy.uz{request.quote(sub_category.get('href'))}").read()
-            types = BeautifulSoup(types, "lxml")
+            types = get(f"https://asaxiy.uz{sub_category.get('href')}")
+            types = BeautifulSoup(types.content, "lxml")
             types = types.findAll(class_='a__aside-data')
 
             for type_category in types:
@@ -93,35 +90,53 @@ def parse_store_products(categories):
     for category in categories.values():
         for sub_category in category['sub_categories'].values():
             for url, type_product in sub_category['types'].items():
-                code = urlopen(f"https://asaxiy.uz{request.quote(url)}").read()
-                soup = BeautifulSoup(code, "lxml")
+                code = get(f"https://asaxiy.uz{url}")
+                soup = BeautifulSoup(code.content, "lxml")
                 product = soup.find(class_="product__item")
 
                 if not product:
                     continue
 
                 product = product.find("a")
-
                 product_url = product.get('href')
-                code_product = urlopen(f"https://asaxiy.uz{request.quote(product_url)}").read()
-                soup_product = BeautifulSoup(code_product, "lxml")
-                img = soup_product.find(class_="img-fluid")
-                price = soup_product.find(class_="price-box_new-price")
-
-                type_product['products'].append({
-                    product_url: {
-                        'title': soup_product.find("h1").getText(),
-                        'description': soup_product.find(class_="description__item").getText(),
-                        'characteristics': soup_product.find(class_='characteristics').prettify(),
-                        'images': [img.get("src")],
-                        'price': price.getText() if price else 0,
-                        'availability': soup_product.find(class_='text__content d-flex align-items-center mb-3').find(
-                            class_="text__content-name").getText(),
-                        'installment': True if soup_product.find('a', {'data-target': '#installment'}) else False,
-                    }
-                })
+                type_product['products'] = get_products(product_url)
 
     return categories
+
+
+def get_products(product_url=None, page=1, foreign_products={}):
+    code_product = get(f"https://asaxiy.uz{product_url}?page={page}", timeout=200)
+    products_page = BeautifulSoup(code_product.content, "lxml")
+    products_a = products_page.select('div.product__item > a[href]')
+    products = foreign_products
+
+    for product_a in products_a:
+        product_link = product_a.get('href')
+
+        if product_link in products:
+            return products
+
+        product_request = get(f"https://asaxiy.uz{product_link}")
+        product_page = BeautifulSoup(product_request.content, "lxml")
+
+        img = product_page.find(class_="img-fluid")
+        price = product_page.find(class_="price-box_new-price")
+        characteristics = product_page.select('.characteristics table')
+        description = product_page.find(class_="description__item")
+
+        products.update({
+            product_link: {
+                'title': product_page.find("h1").getText(),
+                'description': description.getText() if description else None,
+                'characteristics': characteristics[0].prettify() if characteristics else None,
+                'images': [img.get("src")],
+                'price': price.getText() if price else 0,
+                'availability': True if product_page.select('#add_to_cart') else False,
+                'installment': True if product_page.find('a', {'data-target': '#installment'}) else False,
+            }
+        })
+
+    return get_products(product_url, page + 1, products)
 
 
 thread1 = threading.Thread(target=parse_store, args=['asaxiy'])
