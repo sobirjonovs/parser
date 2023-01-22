@@ -120,6 +120,7 @@ def parse_store_products(categories):
         for sub_category in category['sub_categories'].values():
             for url, type_product in sub_category['types'].items():
                 type_product['products'] = get_products(url)
+                print(type_product['products'])
 
     return categories
 
@@ -142,9 +143,9 @@ def get_products(product_url=None, page=1, foreign_products={}):
 
         if product_link in products:
             clone_product = products[product_link]
-            clone_product.duplicates += 1
+            clone_product['duplicates'] += 1
 
-            if clone_product.duplicates == 1:
+            if clone_product['duplicates'] == 1:
                 continue
 
             return products
@@ -181,4 +182,7 @@ thread1 = threading.Thread(target=parse_store, args=['asaxiy'])
 # thread4 = threading.Thread(target=parse_store, args=['texnomart'])
 # thread5 = threading.Thread(target=parse_store, args=['prom'])
 
-thread1.start()  # , thread2.start(), thread3.start(), thread4.start(), thread5.start()
+thread1.start()
+thread1.join()
+
+# , thread2.start(), thread3.start(), thread4.start(), thread5.start()
