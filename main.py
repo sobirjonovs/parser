@@ -155,7 +155,7 @@ def get_products(product_url=None, page=1, foreign_products={}):
         product_single_page.close()
         product_page = BeautifulSoup(product_single_page.content, "lxml")
 
-        img = product_page.find(class_="img-fluid")
+        img = product_page.find(class_="item__main-img").findChild('img')
         price = product_page.find(class_="price-box_new-price")
         characteristics = product_page.select('.characteristics table')
         description = product_page.find(class_="description__item")
@@ -183,6 +183,5 @@ thread1 = threading.Thread(target=parse_store, args=['asaxiy'])
 # thread5 = threading.Thread(target=parse_store, args=['prom'])
 
 thread1.start()
-thread1.join()
 
 # , thread2.start(), thread3.start(), thread4.start(), thread5.start()
