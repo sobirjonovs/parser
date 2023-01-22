@@ -4,9 +4,14 @@ import time
 from requests import get
 from bs4 import BeautifulSoup
 
+REQUEST_TIMEOUT = 200 # seconds
+HEADERS = {'User-Agent': 'Mozilla/5.0'}
+PROXY = {'http': '139.59.228.95:8118'}
+
 
 def parse_store_categories() -> dict:
-    code = get("https://asaxiy.uz")
+    code = get("https://asaxiy.uz", timeout=REQUEST_TIMEOUT, headers=HEADERS, proxies=PROXY)
+    code.close()
     soup = BeautifulSoup(code.content, "lxml")
     menus = soup.find(class_="mega__menu-list").findAll(class_="tab-open")
 
@@ -22,7 +27,7 @@ def parse_store_categories() -> dict:
 
         c_temp = categories[menu.get('href')]
 
-        sub_categories = get(f"https://asaxiy.uz{menu.get('href')}")
+        sub_categories = get(f"https://asaxiy.uz{menu.get('href')}", timeout=REQUEST_TIMEOUT, headers=HEADERS, proxies=PROXY)
         sub_soup = BeautifulSoup(sub_categories.content, "lxml")
         sub_categories = sub_soup.findAll(class_='a__aside-data')
 
@@ -37,7 +42,7 @@ def parse_store_categories() -> dict:
             })
 
             sc_temp = c_temp['sub_categories'][sub_category.get('href')]
-            types = get(f"https://asaxiy.uz{sub_category.get('href')}")
+            types = get(f"https://asaxiy.uz{sub_category.get('href')}", timeout=REQUEST_TIMEOUT, headers=HEADERS, proxies=PROXY)
             types = BeautifulSoup(types.content, "lxml")
             types = types.findAll(class_='a__aside-data')
 
@@ -90,7 +95,7 @@ def parse_store_products(categories):
     for category in categories.values():
         for sub_category in category['sub_categories'].values():
             for url, type_product in sub_category['types'].items():
-                code = get(f"https://asaxiy.uz{url}")
+                code = get(f"https://asaxiy.uz{url}", timeout=REQUEST_TIMEOUT, headers=HEADERS, proxies=PROXY)
                 soup = BeautifulSoup(code.content, "lxml")
                 product = soup.find(class_="product__item")
 
@@ -105,18 +110,24 @@ def parse_store_products(categories):
 
 
 def get_products(product_url=None, page=1, foreign_products={}):
-    code_product = get(f"https://asaxiy.uz{product_url}?page={page}", timeout=200)
+    print(page, product_url)
+    code_product = get(f"https://asaxiy.uz{product_url}?page={page}", timeout=REQUEST_TIMEOUT, headers=HEADERS, proxies=PROXY)
     products_page = BeautifulSoup(code_product.content, "lxml")
     products_a = products_page.select('div.product__item > a[href]')
+    print(products_a)
     products = foreign_products
+
 
     for product_a in products_a:
         product_link = product_a.get('href')
 
+        print(product_link)
+
         if product_link in products:
+            print(product_link, ' - ended')
             return products
 
-        product_request = get(f"https://asaxiy.uz{product_link}")
+        product_request = get(f"https://asaxiy.uz{product_link}", timeout=REQUEST_TIMEOUT, headers=HEADERS, proxies=PROXY)
         product_page = BeautifulSoup(product_request.content, "lxml")
 
         img = product_page.find(class_="img-fluid")
@@ -145,4 +156,4 @@ thread1 = threading.Thread(target=parse_store, args=['asaxiy'])
 # thread4 = threading.Thread(target=parse_store, args=['texnomart'])
 # thread5 = threading.Thread(target=parse_store, args=['prom'])
 
-thread1.start() #, thread2.start(), thread3.start(), thread4.start(), thread5.start()
+thread1.start()  # , thread2.start(), thread3.start(), thread4.start(), thread5.start()
