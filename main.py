@@ -120,7 +120,8 @@ def parse_store_products(categories):
         for sub_category in category['sub_categories'].values():
             for url, type_product in sub_category['types'].items():
                 type_product['products'] = get_products(url)
-                print(type_product['products'])
+
+        print('finished - ', category['title'])
 
     return categories
 
@@ -138,8 +139,6 @@ def get_products(product_url=None, page=1, foreign_products={}):
 
     for product_a in products_a:
         product_link = product_a.get('href')
-
-        print(product_link)
 
         if product_link in products:
             clone_product = products[product_link]
