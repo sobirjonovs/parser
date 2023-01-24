@@ -154,7 +154,8 @@ def get_products(product_url=None, page=1, foreign_products={}):
         product_single_page.close()
         product_page = BeautifulSoup(product_single_page.content, "lxml")
 
-        img = product_page.find(class_="item__main-img").findChild('img')
+        img = product_page.find(class_="item__main-img")
+        img = img.findChild('img') if img else None
         price = product_page.find(class_="price-box_new-price")
         characteristics = product_page.select('.characteristics table')
         description = product_page.find(class_="description__item")
@@ -164,7 +165,7 @@ def get_products(product_url=None, page=1, foreign_products={}):
                 'title': product_page.find("h1").getText(),
                 'description': description.getText() if description else None,
                 'characteristics': characteristics[0].prettify() if characteristics else None,
-                'images': [img.get("src")],
+                'images': [img.get("src") if img else None],
                 'price': price.getText() if price else 0,
                 'availability': True if product_page.select('#add_to_cart') else False,
                 'installment': True if product_page.find('a', {'data-target': '#installment'}) else False,
