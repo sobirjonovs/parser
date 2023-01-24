@@ -8,4 +8,4 @@ WORKDIR /var/www/
 
 RUN pip install -r requirements.txt
 
-CMD python main.py
+CMD exec /bin/sh -c "trap : TERM INT; sleep infinity & wait"

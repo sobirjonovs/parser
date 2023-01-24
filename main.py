@@ -50,6 +50,7 @@ def parse_store_categories() -> dict:
         sub_categories = get(f"https://asaxiy.uz{menu.get('href')}", timeout=REQUEST_TIMEOUT, headers=HEADERS,
                              proxies=generate_proxy())
         sub_categories.close()
+
         sub_soup = BeautifulSoup(sub_categories.content, "lxml")
         sub_categories = sub_soup.findAll(class_='a__aside-data')
 
