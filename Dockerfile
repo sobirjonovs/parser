@@ -8,4 +8,4 @@ WORKDIR /var/www/
 
 RUN pip install -r requirements.txt
 
-CMD python main.pyclear
+CMD python main.py
