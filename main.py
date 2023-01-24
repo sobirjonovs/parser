@@ -150,9 +150,13 @@ def get_products(product_url=None, page=1, foreign_products={}):
 
             return products
 
-        product_single_page = get(f"https://asaxiy.uz{product_link}", timeout=REQUEST_TIMEOUT, headers=HEADERS,
-                                  proxies=generate_proxy())
-        product_single_page.close()
+        try:
+            product_single_page = get(f"https://asaxiy.uz{product_link}", timeout=REQUEST_TIMEOUT, headers=HEADERS,
+                                      proxies=generate_proxy())
+            product_single_page.close()
+        except requests.exceptions.TooManyRedirects:
+            continue
+
         product_page = BeautifulSoup(product_single_page.content, "lxml")
 
         img = product_page.find(class_="item__main-img")
