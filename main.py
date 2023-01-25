@@ -105,14 +105,7 @@ def parse_store_categories() -> dict:
 
 def parse_store(name):
     print(f"start: {name} - {time.strftime('%-d %B %Y, %I:%M:%S%p')}")
-    categories = parse_store_products(parse_store_categories())
-
-    with open('categories.json', 'w') as file:
-        file.write(json.dumps(categories))
-
-    with open('categories_indent.json', 'w') as file:
-        file.write(json.dumps(categories, indent=2, ensure_ascii=False))
-
+    parse_store_products(parse_store_categories())
     print(f"finish: {name} - {time.strftime('%-d %B %Y, %I:%M:%S%p')}")
 
 
@@ -123,6 +116,9 @@ def parse_store_products(categories):
                 type_product['products'] = get_products(url)
 
         print('finished - ', category['title'])
+
+        with open(f"{category['title']}.json", 'w') as file:
+            file.write(json.dumps(categories, indent=2, ensure_ascii=False))
 
     return categories
 
