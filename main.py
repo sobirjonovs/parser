@@ -115,10 +115,12 @@ def parse_store_products(categories):
             for url, type_product in sub_category['types'].items():
                 type_product['products'] = get_products(url)
 
-        print('finished - ', category['title'])
-
         with open(f"{category['title']}.json", 'w') as file:
             file.write(json.dumps(categories, indent=2, ensure_ascii=False))
+
+            del category['sub_categories']
+
+        print('finished - ', category['title'])
 
     return categories
 
