@@ -118,8 +118,6 @@ def parse_store_products(categories):
         with open(f"{category['title']}.json", 'w') as file:
             file.write(json.dumps(categories, indent=2, ensure_ascii=False))
 
-            del category['sub_categories']
-
         print('finished - ', category['title'])
 
     return categories
@@ -143,7 +141,7 @@ def get_products(product_url=None, page=1, foreign_products={}):
             clone_product = products[product_link]
             clone_product['duplicates'] += 1
 
-            if clone_product['duplicates'] == 1:
+            if clone_product['duplicates'] < 3:
                 continue
 
             return products
@@ -153,19 +151,22 @@ def get_products(product_url=None, page=1, foreign_products={}):
                                       proxies=generate_proxy())
             product_single_page.close()
         except requests.exceptions.TooManyRedirects:
+            print('redirected', product_link, page, sep=' ')
             continue
 
         product_page = BeautifulSoup(product_single_page.content, "lxml")
 
         img = product_page.find(class_="item__main-img")
         img = img.findChild('img') if img else None
+        title = product_page.find("h1")
+        title = title.getText() if title else None
         price = product_page.find(class_="price-box_new-price")
         characteristics = product_page.select('.characteristics table')
         description = product_page.find(class_="description__item")
 
         products.update({
             product_link: {
-                'title': product_page.find("h1").getText(),
+                'title': title,
                 'description': description.getText() if description else None,
                 'characteristics': characteristics[0].prettify() if characteristics else None,
                 'images': [img.get("src") if img else None],
