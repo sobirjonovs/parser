@@ -75,7 +75,7 @@ def parse_store_categories() -> dict:
                 sc_temp['types'].update({
                     type_category.get('href'): {
                         'title': type_category.find('h6').getText(),
-                        'products': []
+                        'products': parse_store_products(type_category.find('h6').getText(), type_category.get('href'))
                     }
                 })
 
@@ -83,7 +83,7 @@ def parse_store_categories() -> dict:
                 sc_temp['types'].update({
                     sub_category.get('href'): {
                         'title': sub_title,
-                        'products': []
+                        'products': parse_store_products(sub_title, sub_category.get('href'))
                     }
                 })
 
@@ -94,7 +94,7 @@ def parse_store_categories() -> dict:
                     'types': {
                         menu.get('href'): {
                             'title': menu.getText(),
-                            'products': []
+                            'products': parse_store_products(menu.getText(), menu.get('href'))
                         }
                     }
                 }
@@ -105,22 +105,17 @@ def parse_store_categories() -> dict:
 
 def parse_store(name):
     print(f"start: {name} - {time.strftime('%-d %B %Y, %I:%M:%S%p')}")
-    parse_store_products(parse_store_categories())
+    parse_store_categories()
     print(f"finish: {name} - {time.strftime('%-d %B %Y, %I:%M:%S%p')}")
 
 
-def parse_store_products(categories):
-    for category in categories.values():
-        for sub_category in category['sub_categories'].values():
-            for url, type_product in sub_category['types'].items():
-                type_product['products'] = get_products(url)
+def parse_store_products(title, url):
+    products = get_products(url)
 
-        with open(f"{category['title']}.json", 'w') as file:
-            file.write(json.dumps(categories, indent=2, ensure_ascii=False))
+    with open(f"{title}.json", 'w') as file:
+        file.write(json.dumps(products, indent=2, ensure_ascii=False))
 
-        print('finished - ', category['title'])
-
-    return categories
+    return products
 
 
 def get_products(product_url=None, page=1, foreign_products={}):
