@@ -100,6 +100,8 @@ def parse_store_categories() -> dict:
                 }
             })
 
+        print('parsed', menu.get('href'), sep='-')
+
     return categories
 
 
@@ -112,8 +114,8 @@ def parse_store(name):
 def parse_store_products(title, url):
     products = get_products(url)
 
-    with open(f"{title}.json", 'w') as file:
-        file.write(json.dumps(products, indent=2, ensure_ascii=False))
+    # with open(f"{title}.json", 'w') as file:
+        # file.write(json.dumps(products, indent=2, ensure_ascii=False))
 
     return products
 
