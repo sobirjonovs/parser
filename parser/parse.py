@@ -33,13 +33,12 @@ class Parser:
         }
     }
 
-    def __init__(self, url: str):
+    def __init__(self):
         """
         Initialize a request object using session
         to prevent "Maximum Request Exceeds" exception
         :rtype: object
         """
-        self.url = url
         self.threads = []
         self.session = requests.session()
         retry = Retry(connect=3, backoff_factor=0.5)
@@ -50,6 +49,7 @@ class Parser:
         self.session.mount('https://', adapter)
 
     def parse(self):
+        print('parsing')
         for store_link, parameters in self.STRATEGIES.items():
             pass
 
@@ -91,3 +91,6 @@ class Parser:
     def __join_threads(self):
         for thread in self.threads:
             thread.join()
+
+
+parser = Parser()
