@@ -60,7 +60,6 @@ class Parser:
 
     def __parse_store(self, name, parameters):
         logging.info(f'started: {name}')
-        print(parameters)
         time.sleep(5)
         logging.info(f'finished: {name}')
 
@@ -95,17 +94,14 @@ class Parser:
         """
         thread = Thread(target=callable_, args=[name, parameters])
         thread.start()
+
         self.threads.append(thread)
 
         return self
 
-    def __join_threads(self):
-        for thread in self.threads:
-            thread.join()
-
     def __del__(self):
-        self.__join_threads()
         self.threads = []
+        self.session = None
 
 
 parser = Parser()
