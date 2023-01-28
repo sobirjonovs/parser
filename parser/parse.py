@@ -1,10 +1,13 @@
-import random
-from threading import Thread
-
+import logging
 import requests
-from bs4 import BeautifulSoup
+import random
 
+from threading import Thread
+from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter, Retry
+
+logging.basicConfig(filename='parser.log', format='[%(asctime)s] %(levelname)s: %(message)s',
+                    level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
 
 
 class Parser:
@@ -41,6 +44,7 @@ class Parser:
         """
         self.threads = []
         self.session = requests.session()
+
         retry = Retry(connect=3, backoff_factor=0.5)
         adapter = HTTPAdapter(max_retries=retry)
 
@@ -49,7 +53,7 @@ class Parser:
         self.session.mount('https://', adapter)
 
     def parse(self):
-        print('parsing')
+        logging.info('Hell')
         for store_link, parameters in self.STRATEGIES.items():
             pass
 
