@@ -1,4 +1,6 @@
 import logging
+import time
+
 import requests
 import random
 
@@ -23,16 +25,16 @@ class Parser:
     # Stores keyed with store link and within places to parse
     STRATEGIES = {
         'https://asaxiy.uz': {
-            'TITLE': 'div'
+            'TITLE': 'asaxiy div'
         },
         'https://olcha.uz': {
-            'TITLE': 'div'
+            'TITLE': 'olcha div'
         },
         'https://elmakon.uz': {
-            'TITLE': 'div'
+            'TITLE': 'elmakon div'
         },
         'https://texnomart.uz': {
-            'TITLE': 'div'
+            'TITLE': 'texnomart div'
         }
     }
 
@@ -53,9 +55,14 @@ class Parser:
         self.session.mount('https://', adapter)
 
     def parse(self):
-        logging.info('Hell')
         for store_link, parameters in self.STRATEGIES.items():
-            pass
+            self.__add_thread(name=store_link, parameters=parameters, callable_=self.__parse_store)
+
+    def __parse_store(self, name, parameters):
+        logging.info(f'started: {name}')
+        print(parameters)
+        time.sleep(5)
+        logging.info(f'finished: {name}')
 
     def _get(self, url: str, **kwargs):
         """
@@ -81,12 +88,12 @@ class Parser:
         """
         return {'http': random.choice(self.PROXIES)}
 
-    def __add_thread(self, name, callable_):
+    def __add_thread(self, name, parameters, callable_):
         """
         Create a thread and start it
         :rtype: object
         """
-        thread = Thread(target=callable_, args=[name])
+        thread = Thread(target=callable_, args=[name, parameters])
         thread.start()
         self.threads.append(thread)
 
@@ -95,6 +102,10 @@ class Parser:
     def __join_threads(self):
         for thread in self.threads:
             thread.join()
+
+    def __del__(self):
+        self.__join_threads()
+        self.threads = []
 
 
 parser = Parser()
