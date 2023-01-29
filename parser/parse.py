@@ -44,7 +44,8 @@ class Parser:
         to prevent "Maximum Request Exceeds" exception
         :rtype: object
         """
-        self.threads = []
+        self.threads = list()
+        self.categories = dict()
         self.session = requests.session()
 
         retry = Retry(connect=3, backoff_factor=0.5)
@@ -56,12 +57,21 @@ class Parser:
 
     def parse(self):
         for store_link, parameters in self.STRATEGIES.items():
-            self.__add_thread(name=store_link, parameters=parameters, callable_=self.__parse_store)
+            self.__add_thread(name=store_link, parameters=parameters, callable_=self.__parse)
 
-    def __parse_store(self, name, parameters):
+    def __parse(self, name, parameters):
         logging.info(f'started: {name}')
         time.sleep(5)
         logging.info(f'finished: {name}')
+
+    def _parse_categories(self):
+        pass
+
+    def _parse_sub_categories(self):
+        pass
+
+    def _parse_products(self):
+        pass
 
     def _get(self, url: str, **kwargs):
         """
