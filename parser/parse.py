@@ -1,12 +1,12 @@
 import logging
-import time
+import random
+from threading import Thread
 
 import requests
-import random
-
-from threading import Thread
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter, Retry
+
+from builtins import *
 
 logging.basicConfig(filename='parser.log', format='[%(asctime)s] %(levelname)s: %(message)s',
                     level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
@@ -25,16 +25,10 @@ class Parser:
     # Stores keyed with store link and within places to parse
     STRATEGIES = {
         'https://asaxiy.uz': {
-            'TITLE': 'asaxiy div'
-        },
-        'https://olcha.uz': {
-            'TITLE': 'olcha div'
-        },
-        'https://elmakon.uz': {
-            'TITLE': 'elmakon div'
-        },
-        'https://texnomart.uz': {
-            'TITLE': 'texnomart div'
+            'CATEGORY_TITLE': '.mega__menu-list .tab-open',
+            'SUB_CATEGORY_TITLE': '.a__aside-data > h6',
+            'TYPE_TITLE': '.a__aside-data > h6',
+            'PRODUCT_URL': '.product__item > a'
         }
     }
 
@@ -45,7 +39,6 @@ class Parser:
         :rtype: object
         """
         self.threads = list()
-        self.categories = dict()
         self.session = requests.session()
 
         retry = Retry(connect=3, backoff_factor=0.5)
@@ -60,17 +53,48 @@ class Parser:
             self.__add_thread(name=store_link, parameters=parameters, callable_=self.__parse)
 
     def __parse(self, name, parameters):
+        self.link = name
         logging.info(f'started: {name}')
-        time.sleep(5)
+        print(self._parse_categories(parameters))
         logging.info(f'finished: {name}')
 
-    def _parse_categories(self):
-        pass
+    def _parse_categories(self, parameters):
+        categories = self._soup(self.link).select(parameters['CATEGORY_TITLE'])
+        data = dict()
 
-    def _parse_sub_categories(self):
-        pass
+        for category in categories:
+            category_url = category.get('href')
+            category_title = category.get_text(strip=True)
 
-    def _parse_products(self):
+            data.set(
+                key=category_url,
+                title=category_title,
+                categories=self._parse_sub_categories(link=category_url, parameters=parameters)
+            )
+
+            if not data['categories']:
+                data['categories'].set(
+                    key=category_url,
+                    title=category_title,
+                    types=dict().set(
+                        key=category_url,
+                        title=category_title,
+                        products=self._parse_products(link=category_url, parameters=parameters))
+                )
+
+        return data
+
+    def _parse_sub_categories(self, link, parameters):
+        result = dict()
+
+        sub_categories = self._soup(f"{self.link}{link}").select(parameters['SUB_CATEGORY_TITLE'])
+
+        for sub_category in sub_categories:
+            title = sub_category.get_text(strip=True)
+
+        return result
+
+    def _parse_products(self, link, parameters):
         pass
 
     def _get(self, url: str, **kwargs):
@@ -86,7 +110,7 @@ class Parser:
 
         return session
 
-    def _soup(self, url: str, type_: str = 'lxm'):
+    def _soup(self, url: str, type_: str = 'lxml'):
         return BeautifulSoup(self._get(url).content, type_)
 
     def __generate_proxy(self):
