@@ -1,12 +1,11 @@
 import logging
 import random
-from threading import Thread
-
 import requests
+
+from builtin import *
+from threading import Thread
 from bs4 import BeautifulSoup
 from requests.adapters import HTTPAdapter, Retry
-
-from builtins import *
 
 logging.basicConfig(filename='parser.log', format='[%(asctime)s] %(levelname)s: %(message)s',
                     level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
@@ -66,6 +65,7 @@ class Parser:
 
         for category in categories:
             category_url = category.get('href')
+            print('cat ' + category_url)
             category_title = category.get_text(strip=True)
 
             data.set(
@@ -97,6 +97,7 @@ class Parser:
         for sub_category in sub_categories:
             sub_category_title = sub_category.get_text(strip=True)
             sub_category_url = sub_category.get('href')
+            print('sub ' + sub_category_url)
 
             result.set(
                 key=sub_category_url,
@@ -134,6 +135,7 @@ class Parser:
         for type_ in types:
             type_title = type_.get_text(strip=True)
             type_url = type_.get('href')
+            print('type ' + type_url)
 
             result.set(
                 key=type_url,
