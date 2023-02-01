@@ -26,7 +26,9 @@ class Parser:
         'https://asaxiy.uz': {
             'CATEGORY_TITLE': '.mega__menu-list .tab-open',
             'SUB_CATEGORY_TITLE': '.a__aside-data > h6',
+            'SUB_CATEGORY_URL': '',
             'TYPE_TITLE': '.a__aside-data > h6',
+            'TYPE_URL': '',
             'PAGE': '?page=',
             'PRODUCT_URL': '.product__item > a[href]',
             'PRODUCT_IMAGE': '.item__main-img > img',
