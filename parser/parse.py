@@ -1,5 +1,7 @@
 import logging
 import random
+import time
+
 import requests
 
 from builtin import *
@@ -24,11 +26,15 @@ class Parser:
     # Stores keyed with store link and within places to parse
     STRATEGIES = {
         'https://asaxiy.uz': {
-            'CATEGORY_TITLE': '.mega__menu-list .tab-open',
+            'CATEGORY_TITLE': 'a',
+            'CATEGORY_BLOCK': '.mega__menu-list > li',
+            'CATEGORY_URL': 'a',
             'SUB_CATEGORY_TITLE': '.a__aside-data > h6',
-            'SUB_CATEGORY_URL': '',
+            'SUB_CATEGORY_BLOCK': '.subcategories__aside-wrapper > .a__aside:first-child .a__aside-item',
+            'SUB_CATEGORY_URL': '.a__aside-data',
             'TYPE_TITLE': '.a__aside-data > h6',
-            'TYPE_URL': '',
+            'TYPE_BLOCK': '.subcategories__aside-wrapper > .a__aside:first-child .a__aside-item',
+            'TYPE_URL': '.a__aside-data',
             'PAGE': '?page=',
             'PRODUCT_URL': '.product__item > a[href]',
             'PRODUCT_IMAGE': '.item__main-img > img',
@@ -62,13 +68,16 @@ class Parser:
             self.__add_thread(name=store_link, parameters=parameters, callable_=self.__parse)
 
     def _parse_categories(self, parameters):
-        categories = self._soup(self.link).select(parameters['CATEGORY_TITLE'])
+        category_page = self._soup(self.link)
+        categories = category_page.select(parameters['CATEGORY_BLOCK'])
+
         data = dict()
 
         for category in categories:
-            category_url = category.get('href')
-            print('cat ' + category_url)
-            category_title = category.get_text(strip=True)
+            category_url = self._select_one(category, parameters['CATEGORY_URL'], link=True)
+            category_title = self._select_one(category, parameters['CATEGORY_TITLE'])
+            print('cat url ' + category_url)
+            print('cat tit ' + category_title)
 
             data.set(
                 key=category_url,
@@ -77,10 +86,8 @@ class Parser:
                                                       parameters=parameters)
             )
 
-            categories_ = data[category_url]
-
-            if not categories_['categories']:
-                categories_['categories'].set(
+            if not data[category_url]['categories']:
+                data[category_url]['categories'].set(
                     key=category_url,
                     title=category_title,
                     types=dict().set(
@@ -89,17 +96,25 @@ class Parser:
                         products=self._parse_products(link=category_url, parameters=parameters))
                 )
 
+            data = dict()
+
         return data
 
     def _parse_sub_categories(self, link, category_title, parameters):
         result = dict()
 
-        sub_categories = self._soup(f"{self.link}{link}").select(parameters['SUB_CATEGORY_TITLE'])
+        sub_category_page = self._soup(f"{self.link}{link}")
+        sub_categories = sub_category_page.select(parameters['SUB_CATEGORY_BLOCK'])
 
         for sub_category in sub_categories:
-            sub_category_title = sub_category.get_text(strip=True)
-            sub_category_url = sub_category.get('href')
-            print('sub ' + sub_category_url)
+            sub_category_title = self._select_one(sub_category, parameters['SUB_CATEGORY_TITLE'])
+            sub_category_url = self._select_one(sub_category, parameters['SUB_CATEGORY_URL'], link=True)
+
+            if not sub_category_title:
+                break
+
+            print('sub tit ' + sub_category_title)
+            print('sub url ' + sub_category_url)
 
             result.set(
                 key=sub_category_url,
@@ -132,12 +147,15 @@ class Parser:
     def _parse_types(self, link, sub_category_title, parameters):
         result = dict()
 
-        types = self._soup(f"{self.link}{link}").select(parameters['TYPE_TITLE'])
+        type_page = self._soup(f"{self.link}{link}")
+        types = type_page.select(parameters['TYPE_BLOCK'])
 
         for type_ in types:
-            type_title = type_.get_text(strip=True)
-            type_url = type_.get('href')
-            print('type ' + type_url)
+            type_title = self._select_one(type_, parameters['TYPE_TITLE'])
+            type_url = self._select_one(type_, parameters['TYPE_URL'], link=True)
+
+            if not type_title:
+                break
 
             result.set(
                 key=type_url,
@@ -162,6 +180,7 @@ class Parser:
 
         for product in products:
             product_link = product.get('href')
+            print(product_link)
 
             if product_link in result:
                 _product = result[product_link]
@@ -206,22 +225,37 @@ class Parser:
         Sends get request using session object and close it quickly
         :return: Response
         """
-        session = self.session.get(url=url, timeout=self.REQUEST_TIMEOUT, headers=self.HEADERS,
-                                   proxies=self.__generate_proxy(), **kwargs)
+        params = {
+            'url': url,
+            'timeout': self.REQUEST_TIMEOUT,
+            'headers': self.HEADERS,
+            'proxies': self.__generate_proxy(),
+            **kwargs
+        }
 
-        session.close()
+        try:
+            session = self.session.get(**params)
 
-        return session
+            session.close()
+
+            return session
+        except requests.exceptions.ConnectionError:
+            time.sleep(5)
+
+            return self._get(url, **kwargs)
 
     def _soup(self, url: str, type_: str = 'lxml'):
         return BeautifulSoup(self._get(url).content, type_)
 
     @staticmethod
-    def _select_one(soup, selector, boolean: False, pretty=False, image=False, numeric=False):
+    def _select_one(soup, selector, boolean=False, pretty=False, image=False, numeric=False, link=False):
         element = soup.select_one(selector)
 
         if pretty:
             return element.prettify() if element else None
+
+        if link:
+            return element.get('href') if element else None
 
         if boolean:
             return True if element else False
