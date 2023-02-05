@@ -1,7 +1,7 @@
 import logging
 import random
+import sys
 import time
-
 import requests
 
 from builtin import *
@@ -11,6 +11,8 @@ from requests.adapters import HTTPAdapter, Retry
 
 logging.basicConfig(filename='parser.log', format='[%(asctime)s] %(levelname)s: %(message)s',
                     level=logging.INFO, datefmt='%Y-%m-%d %H:%M:%S')
+
+sys.setrecursionlimit(10000000)
 
 
 class Parser:
@@ -240,9 +242,14 @@ class Parser:
 
             return session
         except requests.exceptions.ConnectionError:
+            print('connection time out: ' + url)
             time.sleep(5)
 
-            return self._get(url, **kwargs)
+            session = self.session.get(**params)
+
+            session.close()
+
+            return session
 
     def _soup(self, url: str, type_: str = 'lxml'):
         return BeautifulSoup(self._get(url).content, type_)
