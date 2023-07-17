@@ -1,1 +1,7 @@
 .idea
+./venv
+venv
+__pycache__
+parser.log
+part.py
+test.py
